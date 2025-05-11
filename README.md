@@ -55,12 +55,6 @@ The plugin does not modify your actual page content or metadata. It only generat
 
 Use the plugin settings page to control post types, word limits, and content elements. You can also exclude individual posts using the meta box.
 
-== Screenshots ==
-
-1. Settings page showing content controls and options.
-2. Per-post exclusion checkbox.
-3. Sample output in Markdown format.
-
 == Changelog ==
 
 = 1.2.8 =
