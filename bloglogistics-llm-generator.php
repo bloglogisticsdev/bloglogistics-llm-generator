@@ -3,10 +3,9 @@
  * Plugin Name:     BlogLogistics LLM Generator
  * Plugin URI:      https://www.bloglogistics.com
  * GitHub Plugin URI: bloglogisticsdev/bloglogistics-llm-generator
- * GitHub Plugin URI: https://github.com/bloglogisticsdev/bloglogistics-llm-generator.git
- * GitHub Branch:     main
+ * GitHub Branch: main
  * Description:     Generates llms.txt and ai.txt files with Markdown formatting. Adds a per-post/page “Exclude from LLM” checkbox for use in posts and pages. Includes configurable Content Settings, Content Options, Update Frequency, and Cache Management.
- * Version:         1.2.7
+ * Version:         1.2.8
  * Author:          Roger Wheatley
  * Author URI:      https://www.bloglogistics.com
  * License:         GPLv2 or later
