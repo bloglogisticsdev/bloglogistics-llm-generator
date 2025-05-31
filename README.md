@@ -1,8 +1,8 @@
 === BlogLogistics LLM Generator ===
 Contributors: rogerwheatley  
 Tags: llms.txt, ai.txt, large language model, markdown, exclude post, llm, ai, generator, cache, post meta  
-Requires at least: 5.5  
-Tested up to: 6.5  
+Requires at least: 6.8  
+Tested up to: 6.8.1 
 Stable tag: 1.3.1  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
