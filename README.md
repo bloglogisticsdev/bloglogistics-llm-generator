@@ -57,6 +57,15 @@ Use the plugin settings page to control post types, word limits, and content ele
 
 == Changelog ==
 
+= 1.3.1 =
+* Fix: Location of llms.txt and ai.txt to now correctly placed at website root.
+* Fix: ai.txt now contains the correct permissions type information.
+* Added: Feature to immediately re-generate llms and ai txt files.
+* Added: Allow AI training toggle.
+* Added: Content license deafults to CC BY-SA 4.0, unless otherwise changed.
+* Added: Ability to disable "File Update Frequency".
+* Updated: Settings to present a more intuative UI + options.
+
 = 1.2.8 =
 * Initial public release.
 * Generates Markdown files `llms.txt` and `ai.txt`.
