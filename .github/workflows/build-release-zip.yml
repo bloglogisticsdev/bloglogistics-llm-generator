@@ -1,0 +1,176 @@
+name: Build WordPress Plugin ZIP
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and attach plugin ZIP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Prepare plugin folder
+        run: |
+          PLUGIN_SLUG="bloglogistics-llm-generator"
+          BUILD_DIR="/tmp/${PLUGIN_SLUG}"
+
+          rm -rf "${BUILD_DIR}"
+          mkdir -p "${BUILD_DIR}"
+
+          rsync -av \
+            --exclude=".git" \
+            --exclude=".github" \
+            --exclude="${PLUGIN_SLUG}.zip" \
+            ./ "${BUILD_DIR}/"
+
+      - name: Create ZIP
+        run: |
+          PLUGIN_SLUG="bloglogistics-llm-generator"
+          cd /tmp
+          zip -r "${GITHUB_WORKSPACE}/${PLUGIN_SLUG}.zip" "${PLUGIN_SLUG}"
+
+      - name: Upload ZIP to release
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PLUGIN_SLUG="bloglogistics-llm-generator"
+          gh release upload "${{ github.event.release.tag_name }}" "${PLUGIN_SLUG}.zip" --clobber
+
+      - name: Upload ZIP as workflow artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bloglogistics-llm-generator
+          path: bloglogistics-llm-generator.zip
+
+      - name: Build update manifest
+        if: github.event_name == 'release'
+        run: |
+          python3 <<'PY'
+          import datetime
+          import html
+          import json
+          import re
+          from pathlib import Path
+
+          plugin_name = "BlogLogistics LLMs.txt Generator"
+          plugin_slug = "bloglogistics-llm-generator"
+          repo_url = "https://github.com/bloglogisticsdev/bloglogistics-llm-generator"
+          icon_base_url = "https://updates.bloglogistics.com/plugins/assets"
+          tag_name = "${{ github.event.release.tag_name }}"
+          version = tag_name.lstrip("v")
+          download_url = f"{repo_url}/releases/download/v{version}/{plugin_slug}.zip"
+          last_updated = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+
+          readme_path = Path("readme.txt")
+          readme = readme_path.read_text(encoding="utf-8", errors="replace")
+
+          changelog_match = re.search(
+              r"^==\s*Changelog\s*==\s*(.*?)(?=^==\s+|\Z)",
+              readme,
+              flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+          )
+
+          changelog_text = changelog_match.group(1).strip() if changelog_match else ""
+
+          html_parts = []
+          current_items = []
+
+          def flush_items():
+              nonlocal_items = list(current_items)
+              current_items.clear()
+              if nonlocal_items:
+                  html_parts.append("<ul>")
+                  for item in nonlocal_items:
+                      html_parts.append(f"<li>{html.escape(item)}</li>")
+                  html_parts.append("</ul>")
+
+          for raw_line in changelog_text.splitlines():
+              line = raw_line.strip()
+              if not line:
+                  continue
+
+              version_heading = re.match(r"^=\s*(.*?)\s*=$", line)
+              if version_heading:
+                  flush_items()
+                  html_parts.append(f"<h4>{html.escape(version_heading.group(1))}</h4>")
+                  continue
+
+              if line.startswith("*"):
+                  current_items.append(line.lstrip("*").strip())
+                  continue
+
+              current_items.append(line)
+
+          flush_items()
+
+          changelog_html = "".join(html_parts) if html_parts else "<p>No changelog available.</p>"
+
+          manifest = {
+              "name": plugin_name,
+              "version": version,
+              "download_url": download_url,
+              "homepage": repo_url,
+              "requires": "7.0",
+              "tested": "7.0",
+              "requires_php": "8.3",
+              "last_updated": last_updated,
+              "author": '<a href="https://www.bloglogistics.com" target="_blank" rel="noopener noreferrer">BlogLogistics</a>',
+              "author_profile": "https://www.bloglogistics.com",
+              "icons": {
+                  "1x": f"{icon_base_url}/icon-128x128.png",
+                  "2x": f"{icon_base_url}/icon-256x256.png",
+                  "default": f"{icon_base_url}/icon-128x128.png",
+              },
+              "banners": {
+                  "low": f"{icon_base_url}/banner-772x250.png",
+                  "high": f"{icon_base_url}/banner-1544x500.png",
+                  "default": f"{icon_base_url}/banner-772x250.png",
+              },
+              "sections": {
+                  "description": "Generates a curated llms.txt file for WordPress sites with exclusions, SEO noindex awareness, regeneration tools, and AI crawler guidance.",
+                  "installation": "<ol><li>Upload the plugin folder to /wp-content/plugins/.</li><li>Activate the plugin in WordPress.</li><li>Go to BlogLogistics &gt; LLMs.txt Generator to review or change the recommended settings.</li><li>Visit /llms.txt on the site to confirm the file works.</li><li>Review the generated file and exclude any content that should not be highlighted.</li></ol>",
+                  "faq": "<h4>What does this plugin do?</h4><p>It generates a curated llms.txt file that highlights useful public content for AI assistants, AI search tools, and other machine clients.</p><h4>Does llms.txt block AI crawlers?</h4><p>No. llms.txt is a discovery and context file. Crawler controls belong in robots.txt, server rules, or bot-management tools.</p><h4>Does this plugin generate ai.txt?</h4><p>No. Older versions included ai.txt support, but this plugin now focuses on llms.txt only.</p><h4>Where are the settings?</h4><p>The settings are available under BlogLogistics &gt; LLMs.txt Generator.</p><h4>What happens when the plugin is deleted?</h4><p>The plugin removes its saved settings, scheduled cron hook, exclusion metadata, and the generated llms.txt file when the file contains the BlogLogistics generator marker.</p>",
+                  "changelog": changelog_html,
+              },
+          }
+
+          output_path = Path(f"{plugin_slug}.json")
+          output_path.write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+
+          print(output_path.read_text(encoding="utf-8"))
+          PY
+
+      - name: Upload update manifest by FTPS
+        if: github.event_name == 'release'
+        env:
+          FTP_SERVER: ${{ secrets.BLOGLOGISTICS_UPDATES_FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.BLOGLOGISTICS_UPDATES_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BLOGLOGISTICS_UPDATES_FTP_PASSWORD }}
+          FTP_SERVER_DIR: ${{ secrets.BLOGLOGISTICS_UPDATES_FTP_SERVER_DIR }}
+        run: |
+          PLUGIN_SLUG="bloglogistics-llm-generator"
+
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+          lftp -u "${FTP_USERNAME}","${FTP_PASSWORD}" "${FTP_SERVER}" <<EOF
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate false
+          cd "${FTP_SERVER_DIR}"
+          put "${PLUGIN_SLUG}.json" -o "${PLUGIN_SLUG}.json"
+          bye
+          EOF

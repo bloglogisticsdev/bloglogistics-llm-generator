@@ -1,0 +1,161 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: BlogLogistics LLMs.txt Generator 1.4.1\n"
+"Report-Msgid-Bugs-To: https://github.com/bloglogisticsdev/bloglogistics-llm-generator/issues\n"
+"POT-Creation-Date: 2026-06-06 00:00+0000\n"
+"PO-Revision-Date: 2026-06-06 00:00+0000\n"
+"Last-Translator: BlogLogistics <support@bloglogistics.com>\n"
+"Language-Team: BlogLogistics\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: BlogLogistics standard repo conversion\n"
+"X-Domain: bloglogistics-llm-generator\n"
+
+
+msgid "BlogLogistics"
+msgstr ""
+
+msgid "LLMs.txt Generator"
+msgstr ""
+
+msgid "Weekly"
+msgstr ""
+
+msgid "LLMs.txt Content Control"
+msgstr ""
+
+msgid "Exclude this content from llms.txt"
+msgstr ""
+
+msgid "Use this for private, thin, duplicated, outdated, or otherwise unsuitable public content."
+msgstr ""
+
+msgid "You do not have sufficient permissions to perform this action."
+msgstr ""
+
+msgid "Nonce verification failed."
+msgstr ""
+
+msgid "BlogLogistics LLMs.txt Generator"
+msgstr ""
+
+msgid "Settings saved and llms.txt regenerated."
+msgstr ""
+
+msgid "llms.txt regenerated."
+msgstr ""
+
+msgid "llms.txt is a curated discovery file for AI assistants and AI search systems. It does not block crawlers, control AI training, or replace robots.txt."
+msgstr ""
+
+msgid "LLMs.txt Settings"
+msgstr ""
+
+msgid "Robots.txt Guidance"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "LLMs.txt Content Settings"
+msgstr ""
+
+msgid "Site Summary"
+msgstr ""
+
+msgid "A short, factual summary shown near the top of llms.txt."
+msgstr ""
+
+msgid "Post Types"
+msgstr ""
+
+msgid "Select public post types to include. Individual content can still be excluded with the editor sidebar checkbox."
+msgstr ""
+
+msgid "Maximum Items per Type"
+msgstr ""
+
+msgid "Keep this curated. A smaller llms.txt is usually better than a large sitemap-style dump."
+msgstr ""
+
+msgid "Maximum Summary Words"
+msgstr ""
+
+msgid "Use concise summaries. Set to 0 for links only."
+msgstr ""
+
+msgid "Discovery Links"
+msgstr ""
+
+msgid "Include WordPress XML sitemap link"
+msgstr ""
+
+msgid "Include RSS feed link"
+msgstr ""
+
+msgid "SEO Awareness"
+msgstr ""
+
+msgid "Exclude content marked noindex by common SEO plugins where detectable"
+msgstr ""
+
+msgid "Update Frequency"
+msgstr ""
+
+msgid "Disabled, manual only"
+msgstr ""
+
+msgid "Hourly"
+msgstr ""
+
+msgid "Twice Daily"
+msgstr ""
+
+msgid "Daily"
+msgstr ""
+
+msgid "The file also regenerates after selected published content is updated, trashed, or deleted."
+msgstr ""
+
+msgid "Legacy ai.txt"
+msgstr ""
+
+msgid "Delete legacy ai.txt from the WordPress root during regeneration"
+msgstr ""
+
+msgid "This plugin no longer generates ai.txt. Use this only if the existing ai.txt was created by the old version of this plugin."
+msgstr ""
+
+msgid "Save Settings & Regenerate llms.txt"
+msgstr ""
+
+msgid "Crawler controls belong in robots.txt, server rules, or a bot-management tool, not in llms.txt or ai.txt."
+msgstr ""
+
+msgid "Common AI crawler examples include GPTBot for OpenAI training access, OAI-SearchBot for OpenAI search visibility, ChatGPT-User for user-triggered requests, and Google-Extended for Google AI-related controls. Review each provider’s current documentation before blocking or allowing crawlers."
+msgstr ""
+
+msgid "Example: allow AI search-style discovery but discourage OpenAI training crawler access"
+msgstr ""
+
+msgid "This is guidance only. The plugin does not edit robots.txt automatically."
+msgstr ""
+
+msgid "Regenerate llms.txt Now"
+msgstr ""
+
+msgid "File Status"
+msgstr ""
+
+msgid "Last modified: %s"
+msgstr ""
+
+msgid "Not yet generated."
+msgstr ""
+
+msgid "Generated file location:"
+msgstr ""
+
+msgid "A legacy ai.txt file exists. This plugin no longer generates ai.txt."
+msgstr ""
