@@ -369,6 +369,9 @@ final class BL_LLMs_Txt_Generator {
         if ( '1' === $settings['include_feed'] ) {
             $optional[] = '- [RSS Feed](' . esc_url_raw( get_feed_link() ) . '): Latest published posts.';
         }
+        if ( self::is_markdown_for_agents_active() && self::markdown_for_agents_serves_homepage() ) {
+            $optional[] = '- [Markdown Homepage](' . esc_url_raw( home_url( '/index.md' ) ) . '): Agent-friendly Markdown homepage provided by BlogLogistics Markdown for Agents.';
+        }
         if ( ! empty( $optional ) ) {
             $out[] = '## Optional';
             $out = array_merge( $out, $optional );
@@ -437,6 +440,127 @@ final class BL_LLMs_Txt_Generator {
         return false;
     }
 
+    protected static function is_content_signals_robots_active() {
+        return self::is_plugin_active_by_markers(
+            'bloglogistics-content-signals-robots/bloglogistics-content-signals-robots.php',
+            'BLOGLOGISTICS_CSR_VERSION',
+            'BlogLogistics_Content_Signals_Robots'
+        );
+    }
+
+    protected static function is_markdown_for_agents_active() {
+        return self::is_plugin_active_by_markers(
+            'bloglogistics-markdown-for-agents/bloglogistics-markdown-for-agents.php',
+            'BLOGLOGISTICS_MFA_VERSION',
+            'BL_Markdown_For_Agents'
+        );
+    }
+
+    protected static function is_plugin_active_by_markers( $plugin_basename, $constant_name, $class_name ) {
+        if ( defined( $constant_name ) || class_exists( $class_name, false ) ) {
+            return true;
+        }
+
+        $active_plugins = (array) get_option( 'active_plugins', [] );
+        if ( in_array( $plugin_basename, $active_plugins, true ) ) {
+            return true;
+        }
+
+        if ( is_multisite() ) {
+            $network_plugins = (array) get_site_option( 'active_sitewide_plugins', [] );
+            if ( isset( $network_plugins[ $plugin_basename ] ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected static function content_signals_robots_settings() {
+        $options = get_option( 'bloglogistics_csr_options', [] );
+        if ( ! is_array( $options ) ) {
+            $options = [];
+        }
+
+        return wp_parse_args(
+            $options,
+            [
+                'enabled'           => true,
+                'allow_search'      => true,
+                'allow_ai_answers'  => true,
+                'allow_ai_training' => false,
+            ]
+        );
+    }
+
+    protected static function markdown_for_agents_settings() {
+        $option_name = defined( 'BLOGLOGISTICS_MFA_SETTINGS_OPTION' ) ? BLOGLOGISTICS_MFA_SETTINGS_OPTION : 'bloglogistics_mfa_settings';
+        $settings    = get_option( $option_name, [] );
+        if ( ! is_array( $settings ) ) {
+            $settings = [];
+        }
+
+        return wp_parse_args(
+            $settings,
+            [
+                'enable_markdown_homepage'   => true,
+                'enable_content_negotiation' => true,
+                'add_discovery_headers'      => true,
+            ]
+        );
+    }
+
+    protected static function markdown_for_agents_serves_homepage() {
+        if ( ! self::is_markdown_for_agents_active() ) {
+            return false;
+        }
+
+        $settings = self::markdown_for_agents_settings();
+        return ! empty( $settings['enable_markdown_homepage'] );
+    }
+
+    protected static function admin_link( $page_slug ) {
+        return admin_url( 'admin.php?page=' . rawurlencode( $page_slug ) );
+    }
+
+    protected static function render_companion_plugin_notices() {
+        $content_signals_active = self::is_content_signals_robots_active();
+        $markdown_active        = self::is_markdown_for_agents_active();
+
+        if ( ! $content_signals_active && ! $markdown_active ) {
+            return;
+        }
+        ?>
+        <div class="notice notice-info inline bloglogistics-companion-notice">
+            <p><strong><?php esc_html_e( 'Companion BlogLogistics plugins detected.', 'bloglogistics-llm-generator' ); ?></strong></p>
+            <ul style="list-style:disc;margin-left:20px;">
+                <?php if ( $content_signals_active ) : ?>
+                    <li>
+                        <?php
+                        printf(
+                            /* translators: %s: linked plugin settings page. */
+                            wp_kses_post( __( 'Robots.txt content-use preferences are already managed by %s. Manage crawler and Content-Signal settings there. This plugin will not edit robots.txt.', 'bloglogistics-llm-generator' ) ),
+                            '<a href="' . esc_url( self::admin_link( 'bloglogistics-content-signals-robots' ) ) . '">' . esc_html__( 'BlogLogistics Content Signals for Robots.txt', 'bloglogistics-llm-generator' ) . '</a>'
+                        );
+                        ?>
+                    </li>
+                <?php endif; ?>
+                <?php if ( $markdown_active ) : ?>
+                    <li>
+                        <?php
+                        printf(
+                            /* translators: %s: linked plugin settings page. */
+                            wp_kses_post( __( 'Markdown homepage and content negotiation are already managed by %s. Manage /index.md and Markdown discovery headers there. This plugin will not create or override Markdown endpoints.', 'bloglogistics-llm-generator' ) ),
+                            '<a href="' . esc_url( self::admin_link( 'bloglogistics-markdown-for-agents' ) ) . '">' . esc_html__( 'BlogLogistics Markdown for Agents', 'bloglogistics-llm-generator' ) . '</a>'
+                        );
+                        ?>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </div>
+        <?php
+    }
+
     private static function settings_page_url() {
         return admin_url( 'admin.php?page=' . self::MENU_SLUG );
     }
@@ -460,8 +584,10 @@ final class BL_LLMs_Txt_Generator {
             <?php endif; ?>
 
             <div class="notice notice-info">
-                <p><?php esc_html_e( 'llms.txt is a curated discovery file for AI assistants and AI search systems. It does not block crawlers, control AI training, or replace robots.txt.', 'bloglogistics-llm-generator' ); ?></p>
+                <p><?php esc_html_e( 'llms.txt is a curated discovery file for AI assistants and AI search systems. It does not block crawlers, control AI training, create Markdown endpoints, or replace robots.txt.', 'bloglogistics-llm-generator' ); ?></p>
             </div>
+
+            <?php self::render_companion_plugin_notices(); ?>
 
             <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
                 <input type="hidden" name="action" value="bloglogistics_llmg_save_settings">
@@ -516,6 +642,9 @@ final class BL_LLMs_Txt_Generator {
                             <td>
                                 <label style="display:block;margin-bottom:6px;"><input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[include_sitemap]" value="1" <?php checked( $settings['include_sitemap'], '1' ); ?>> <?php esc_html_e( 'Include WordPress XML sitemap link', 'bloglogistics-llm-generator' ); ?></label>
                                 <label style="display:block;margin-bottom:6px;"><input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[include_feed]" value="1" <?php checked( $settings['include_feed'], '1' ); ?>> <?php esc_html_e( 'Include RSS feed link', 'bloglogistics-llm-generator' ); ?></label>
+                                <?php if ( self::is_markdown_for_agents_active() ) : ?>
+                                    <p class="description"><?php esc_html_e( 'BlogLogistics Markdown for Agents is active, so llms.txt will also include the /index.md Markdown homepage when that plugin has the Markdown homepage enabled. Manage that endpoint in Markdown for Agents.', 'bloglogistics-llm-generator' ); ?></p>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <tr>
@@ -550,10 +679,34 @@ final class BL_LLMs_Txt_Generator {
 
                 <div id="guidance-settings" class="tab-content" style="display:none;">
                     <h2><?php esc_html_e( 'Robots.txt Guidance', 'bloglogistics-llm-generator' ); ?></h2>
-                    <p><?php esc_html_e( 'Crawler controls belong in robots.txt, server rules, or a bot-management tool, not in llms.txt or ai.txt.', 'bloglogistics-llm-generator' ); ?></p>
-                    <p><?php esc_html_e( 'Common AI crawler examples include GPTBot for OpenAI training access, OAI-SearchBot for OpenAI search visibility, ChatGPT-User for user-triggered requests, and Google-Extended for Google AI-related controls. Review each provider’s current documentation before blocking or allowing crawlers.', 'bloglogistics-llm-generator' ); ?></p>
-                    <h3><?php esc_html_e( 'Example: allow AI search-style discovery but discourage OpenAI training crawler access', 'bloglogistics-llm-generator' ); ?></h3>
-                    <textarea readonly class="large-text code" rows="8">User-agent: GPTBot
+                    <?php if ( self::is_content_signals_robots_active() ) : ?>
+                        <?php $csr_settings = self::content_signals_robots_settings(); ?>
+                        <div class="notice notice-info inline">
+                            <p><strong><?php esc_html_e( 'Robots.txt is already handled by BlogLogistics Content Signals for Robots.txt.', 'bloglogistics-llm-generator' ); ?></strong></p>
+                            <p><?php esc_html_e( 'Manage crawler and Content-Signal preferences in that plugin. This plugin only generates llms.txt and will not edit robots.txt.', 'bloglogistics-llm-generator' ); ?></p>
+                            <p>
+                                <a class="button" href="<?php echo esc_url( self::admin_link( 'bloglogistics-content-signals-robots' ) ); ?>"><?php esc_html_e( 'Open Robots.txt Content Preferences', 'bloglogistics-llm-generator' ); ?></a>
+                            </p>
+                            <p class="description">
+                                <?php
+                                echo esc_html(
+                                    sprintf(
+                                        /* translators: 1: enabled status, 2: search status, 3: AI answer status, 4: AI training status. */
+                                        __( 'Detected Content-Signal status: enabled=%1$s, search=%2$s, ai-input=%3$s, ai-train=%4$s.', 'bloglogistics-llm-generator' ),
+                                        ! empty( $csr_settings['enabled'] ) ? 'yes' : 'no',
+                                        ! empty( $csr_settings['allow_search'] ) ? 'yes' : 'no',
+                                        ! empty( $csr_settings['allow_ai_answers'] ) ? 'yes' : 'no',
+                                        ! empty( $csr_settings['allow_ai_training'] ) ? 'yes' : 'no'
+                                    )
+                                );
+                                ?>
+                            </p>
+                        </div>
+                    <?php else : ?>
+                        <p><?php esc_html_e( 'Crawler controls belong in robots.txt, server rules, or a bot-management tool, not in llms.txt or ai.txt.', 'bloglogistics-llm-generator' ); ?></p>
+                        <p><?php esc_html_e( 'Common AI crawler examples include GPTBot for OpenAI training access, OAI-SearchBot for OpenAI search visibility, ChatGPT-User for user-triggered requests, and Google-Extended for Google AI-related controls. Review each provider’s current documentation before blocking or allowing crawlers.', 'bloglogistics-llm-generator' ); ?></p>
+                        <h3><?php esc_html_e( 'Example: allow AI search-style discovery but discourage OpenAI training crawler access', 'bloglogistics-llm-generator' ); ?></h3>
+                        <textarea readonly class="large-text code" rows="8">User-agent: GPTBot
 Disallow: /
 
 User-agent: OAI-SearchBot
@@ -561,7 +714,8 @@ Allow: /
 
 User-agent: ChatGPT-User
 Allow: /</textarea>
-                    <p class="description"><?php esc_html_e( 'This is guidance only. The plugin does not edit robots.txt automatically.', 'bloglogistics-llm-generator' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'This is guidance only. The plugin does not edit robots.txt automatically. For managed robots.txt content-use preferences, install BlogLogistics Content Signals for Robots.txt.', 'bloglogistics-llm-generator' ); ?></p>
+                    <?php endif; ?>
                 </div>
 
                 <div id="status-settings" class="tab-content" style="display:none;">
@@ -611,6 +765,9 @@ Allow: /</textarea>
             <?php if ( file_exists( $ai_txt_file_path ) ) : ?>
                 <p><strong>ai.txt:</strong> <?php esc_html_e( 'A legacy ai.txt file exists. This plugin no longer generates ai.txt.', 'bloglogistics-llm-generator' ); ?></p>
             <?php endif; ?>
+            <h3><?php esc_html_e( 'Companion Plugin Status', 'bloglogistics-llm-generator' ); ?></h3>
+            <p><strong><?php esc_html_e( 'BlogLogistics Content Signals for Robots.txt:', 'bloglogistics-llm-generator' ); ?></strong> <?php echo self::is_content_signals_robots_active() ? esc_html__( 'Active, manage robots.txt and Content-Signal preferences there.', 'bloglogistics-llm-generator' ) : esc_html__( 'Not active, this plugin will still generate llms.txt normally.', 'bloglogistics-llm-generator' ); ?></p>
+            <p><strong><?php esc_html_e( 'BlogLogistics Markdown for Agents:', 'bloglogistics-llm-generator' ); ?></strong> <?php echo self::is_markdown_for_agents_active() ? esc_html__( 'Active, manage /index.md and Markdown discovery headers there.', 'bloglogistics-llm-generator' ) : esc_html__( 'Not active, this plugin will still generate llms.txt normally.', 'bloglogistics-llm-generator' ); ?></p>
         </div>
         <?php
     }

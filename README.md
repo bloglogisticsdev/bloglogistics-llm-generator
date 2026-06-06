@@ -4,11 +4,11 @@ Tags: llms.txt, ai, robots.txt, seo, discovery
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.3
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Generates a curated llms.txt file for WordPress sites with exclusions, SEO noindex awareness, regeneration tools, and AI crawler guidance.
+Generates a curated llms.txt file for WordPress sites with exclusions, SEO noindex awareness, regeneration tools, and companion-plugin awareness.
 
 == Description ==
 
@@ -25,6 +25,9 @@ Key features include:
 * Automatic regeneration when selected published content changes.
 * Optional XML sitemap and RSS feed discovery links.
 * Robots.txt guidance for AI crawler decisions, without automatically modifying robots.txt.
+* Detection for BlogLogistics Content Signals for Robots.txt, with notices that robots.txt and Content-Signal preferences should be managed there.
+* Detection for BlogLogistics Markdown for Agents, with notices that /index.md and Markdown discovery headers should be managed there.
+* Automatic /index.md discovery link in llms.txt when BlogLogistics Markdown for Agents is active and serving the Markdown homepage.
 * Cleanup on uninstall.
 
 == Installation ==
@@ -47,7 +50,7 @@ No. llms.txt is a discovery and context file. Crawler controls belong in robots.
 No. Older versions included ai.txt support, but this plugin now focuses on llms.txt because ai.txt is not a reliable or broadly adopted control mechanism.
 
 = Does this plugin edit robots.txt? =
-No. The plugin includes guidance and example snippets only. It does not automatically modify robots.txt.
+No. The plugin includes guidance and example snippets only. It does not automatically modify robots.txt. If BlogLogistics Content Signals for Robots.txt is active, this plugin detects it and points users there for robots.txt and Content-Signal management.
 
 = Can I exclude specific pages or posts? =
 Yes. Selected post types receive an editor sidebar checkbox named Exclude this content from llms.txt.
@@ -55,10 +58,20 @@ Yes. Selected post types receive an editor sidebar checkbox named Exclude this c
 = Does the plugin respect SEO noindex settings? =
 It can exclude content marked noindex by common SEO plugin metadata where detectable. This option is enabled by default.
 
+= Does this plugin conflict with BlogLogistics Markdown for Agents? =
+No. When BlogLogistics Markdown for Agents is active, this plugin detects it, points users there for /index.md and Markdown discovery-header management, and can include the Markdown homepage link in llms.txt.
+
 = What happens when the plugin is deleted? =
 The plugin removes its saved settings, scheduled cron hook, exclusion metadata, and the generated llms.txt file when the file contains the BlogLogistics generator marker.
 
 == Changelog ==
+
+= 1.4.2 =
+* Add companion-plugin detection for BlogLogistics Content Signals for Robots.txt and BlogLogistics Markdown for Agents.
+* Add admin notices explaining which companion plugin owns robots.txt, Content-Signal, /index.md, and Markdown discovery-header functions.
+* Prevent feature overlap by keeping robots.txt and Markdown endpoint management out of this plugin when the companion plugins are active.
+* Add a Markdown homepage link to llms.txt when BlogLogistics Markdown for Agents is active and serving /index.md.
+* Add companion plugin status information to the Status tab.
 
 = 1.4.1 =
 * Restructure the plugin to follow the standard BlogLogistics repository layout.
