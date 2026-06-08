@@ -4,7 +4,7 @@ Tags: llms.txt, ai, robots.txt, seo, discovery
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.3
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
