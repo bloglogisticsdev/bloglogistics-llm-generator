@@ -74,46 +74,128 @@ jobs:
           readme_path = Path("readme.txt")
           readme = readme_path.read_text(encoding="utf-8", errors="replace")
 
-          changelog_match = re.search(
-              r"^==\s*Changelog\s*==\s*(.*?)(?=^==\s+|\Z)",
-              readme,
-              flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
-          )
+          def extract_readme_section(readme_text, section_name):
+              match = re.search(
+                  rf"^==\s*{re.escape(section_name)}\s*==\s*(.*?)(?=^==\s+|\Z)",
+                  readme_text,
+                  flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+              )
+              return match.group(1).strip() if match else ""
 
-          changelog_text = changelog_match.group(1).strip() if changelog_match else ""
+          def convert_ordered_section_to_html(section_text):
+              html_parts = []
+              current_items = []
+              current_paragraph = []
 
-          html_parts = []
-          current_items = []
+              def flush_paragraph():
+                  if current_paragraph:
+                      paragraph = " ".join(current_paragraph).strip()
+                      html_parts.append(f"<p>{html.escape(paragraph)}</p>")
+                      current_paragraph.clear()
 
-          def flush_items():
-              nonlocal_items = list(current_items)
-              current_items.clear()
-              if nonlocal_items:
-                  html_parts.append("<ul>")
-                  for item in nonlocal_items:
-                      html_parts.append(f"<li>{html.escape(item)}</li>")
-                  html_parts.append("</ul>")
+              def flush_items():
+                  if current_items:
+                      html_parts.append("<ol>")
+                      for item in current_items:
+                          html_parts.append(f"<li>{html.escape(item)}</li>")
+                      html_parts.append("</ol>")
+                      current_items.clear()
 
-          for raw_line in changelog_text.splitlines():
-              line = raw_line.strip()
-              if not line:
-                  continue
+              for raw_line in section_text.splitlines():
+                  line = raw_line.strip()
+                  if not line:
+                      flush_paragraph()
+                      flush_items()
+                      continue
 
-              version_heading = re.match(r"^=\s*(.*?)\s*=$", line)
-              if version_heading:
+                  item_match = re.match(r"^\d+\.\s+(.*)$", line)
+                  if item_match:
+                      flush_paragraph()
+                      current_items.append(item_match.group(1).strip())
+                      continue
+
                   flush_items()
-                  html_parts.append(f"<h4>{html.escape(version_heading.group(1))}</h4>")
-                  continue
+                  current_paragraph.append(line)
 
-              if line.startswith("*"):
-                  current_items.append(line.lstrip("*").strip())
-                  continue
+              flush_paragraph()
+              flush_items()
 
-              current_items.append(line)
+              return "".join(html_parts) if html_parts else "<p>No installation instructions available.</p>"
 
-          flush_items()
+          def convert_faq_to_html(faq_text):
+              html_parts = []
+              current_question = None
+              current_answer = []
 
-          changelog_html = "".join(html_parts) if html_parts else "<p>No changelog available.</p>"
+              def flush_question():
+                  nonlocal current_question, current_answer
+                  if current_question is None:
+                      return
+                  answer = " ".join(line.strip() for line in current_answer if line.strip())
+                  html_parts.append(f"<h4>{html.escape(current_question)}</h4>")
+                  html_parts.append(f"<p>{html.escape(answer)}</p>" if answer else "<p></p>")
+                  current_question = None
+                  current_answer = []
+
+              for raw_line in faq_text.splitlines():
+                  line = raw_line.strip()
+                  if not line:
+                      continue
+
+                  question_match = re.match(r"^=\s*(.*?)\s*=$", line)
+                  if question_match:
+                      flush_question()
+                      current_question = question_match.group(1).strip()
+                      current_answer = []
+                      continue
+
+                  if current_question is not None:
+                      current_answer.append(line)
+
+              flush_question()
+
+              return "".join(html_parts) if html_parts else "<p>No FAQ available.</p>"
+
+          def convert_changelog_to_html(changelog_text):
+              html_parts = []
+              current_items = []
+
+              def flush_items():
+                  if current_items:
+                      html_parts.append("<ul>")
+                      for item in current_items:
+                          html_parts.append(f"<li>{html.escape(item)}</li>")
+                      html_parts.append("</ul>")
+                      current_items.clear()
+
+              for raw_line in changelog_text.splitlines():
+                  line = raw_line.strip()
+                  if not line:
+                      continue
+
+                  version_heading = re.match(r"^=\s*(.*?)\s*=$", line)
+                  if version_heading:
+                      flush_items()
+                      html_parts.append(f"<h4>{html.escape(version_heading.group(1))}</h4>")
+                      continue
+
+                  if line.startswith("*"):
+                      current_items.append(line.lstrip("*").strip())
+                      continue
+
+                  current_items.append(line)
+
+              flush_items()
+
+              return "".join(html_parts) if html_parts else "<p>No changelog available.</p>"
+
+          installation_text = extract_readme_section(readme, "Installation")
+          faq_text = extract_readme_section(readme, "Frequently Asked Questions")
+          changelog_text = extract_readme_section(readme, "Changelog")
+
+          installation_html = convert_ordered_section_to_html(installation_text)
+          faq_html = convert_faq_to_html(faq_text)
+          changelog_html = convert_changelog_to_html(changelog_text)
 
           manifest = {
               "name": plugin_name,
@@ -138,8 +220,8 @@ jobs:
               },
               "sections": {
                   "description": "Generates a curated llms.txt file for WordPress sites with exclusions, SEO noindex awareness, regeneration tools, and AI crawler guidance.",
-                  "installation": "<ol><li>Upload the plugin folder to /wp-content/plugins/.</li><li>Activate the plugin in WordPress.</li><li>Go to BlogLogistics &gt; LLMs.txt Generator to review or change the recommended settings.</li><li>Visit /llms.txt on the site to confirm the file works.</li><li>Review the generated file and exclude any content that should not be highlighted.</li></ol>",
-                  "faq": "<h4>What does this plugin do?</h4><p>It generates a curated llms.txt file that highlights useful public content for AI assistants, AI search tools, and other machine clients.</p><h4>Does llms.txt block AI crawlers?</h4><p>No. llms.txt is a discovery and context file. Crawler controls belong in robots.txt, server rules, or bot-management tools.</p><h4>Does this plugin generate ai.txt?</h4><p>No. Older versions included ai.txt support, but this plugin now focuses on llms.txt only.</p><h4>Where are the settings?</h4><p>The settings are available under BlogLogistics &gt; LLMs.txt Generator.</p><h4>What happens when the plugin is deleted?</h4><p>The plugin removes its saved settings, scheduled cron hook, exclusion metadata, and the generated llms.txt file when the file contains the BlogLogistics generator marker.</p>",
+                  "installation": installation_html,
+                  "faq": faq_html,
                   "changelog": changelog_html,
               },
           }

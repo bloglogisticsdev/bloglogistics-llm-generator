@@ -3,7 +3,7 @@
  * Plugin Name:       BlogLogistics LLMs.txt Generator
  * Plugin URI:        https://github.com/bloglogisticsdev/bloglogistics-llm-generator
  * Description:       Generates a curated llms.txt file for WordPress sites with per-content exclusions, SEO noindex awareness, companion-plugin awareness, manual regeneration, and scheduled updates.
- * Version:           1.4.3
+ * Version:           1.4.4
  * Requires at least: 7.0
  * Requires PHP:      8.3
  * Author:            BlogLogistics
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'BLOGLOGISTICS_LLMG_VERSION', '1.4.3' );
+define( 'BLOGLOGISTICS_LLMG_VERSION', '1.4.4' );
 define( 'BLOGLOGISTICS_LLMG_SLUG', 'bloglogistics-llm-generator' );
 define( 'BLOGLOGISTICS_LLMG_FILE', __FILE__ );
 define( 'BLOGLOGISTICS_LLMG_DIR', plugin_dir_path( __FILE__ ) );

@@ -4,7 +4,7 @@ Tags: llms.txt, ai, robots.txt, seo, discovery
 Requires at least: 7.0
 Tested up to: 7.0
 Requires PHP: 8.3
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 License: GPL-3.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -77,6 +77,11 @@ The plugin removes its saved settings, scheduled cron hook, exclusion metadata, 
 This plugin is licensed under GPL-3.0-or-later. BlogLogistics service use, support, updates, configuration assistance, or replacement work may require an active BlogLogistics hosting, maintenance, or site-management service, or a separate agreement. This notice does not restrict any rights granted under the GPL-3.0-or-later licence.
 
 == Changelog ==
+
+= 1.4.4 =
+* Generate the update manifest Installation section from readme.txt.
+* Generate the update manifest FAQ section from readme.txt.
+* Remove stale hard-coded Installation and FAQ manifest content from the release workflow.
 
 = 1.4.2 =
 * Add companion-plugin detection for BlogLogistics Content Signals for Robots.txt and BlogLogistics Markdown for Agents.
