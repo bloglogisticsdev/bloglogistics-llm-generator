@@ -30,6 +30,14 @@ Key features include:
 * Automatic /index.md discovery link in llms.txt when BlogLogistics Markdown for Agents is active and serving the Markdown homepage.
 * Cleanup on uninstall.
 
+== BlogLogistics Service Usage Notice ==
+
+This plugin is licensed under GPL-3.0-or-later.
+
+This plugin is provided by BlogLogistics as part of an active hosting, maintenance, or site-management service, unless a separate service arrangement has been granted. If the website is moved to another provider, continued BlogLogistics service use, support, updates, configuration assistance, or replacement work may require a separate agreement.
+
+This notice does not restrict any rights granted under the GPL-3.0-or-later licence.
+
 == Installation ==
 
 1. Upload the plugin folder to /wp-content/plugins/.
@@ -63,6 +71,10 @@ No. When BlogLogistics Markdown for Agents is active, this plugin detects it, po
 
 = What happens when the plugin is deleted? =
 The plugin removes its saved settings, scheduled cron hook, exclusion metadata, and the generated llms.txt file when the file contains the BlogLogistics generator marker.
+
+= Does this plugin continue to be covered by BlogLogistics service terms if the website moves to another provider? =
+
+This plugin is licensed under GPL-3.0-or-later. BlogLogistics service use, support, updates, configuration assistance, or replacement work may require an active BlogLogistics hosting, maintenance, or site-management service, or a separate agreement. This notice does not restrict any rights granted under the GPL-3.0-or-later licence.
 
 == Changelog ==
 
